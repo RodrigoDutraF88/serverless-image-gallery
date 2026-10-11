@@ -1,0 +1,54 @@
+# --- Secrets & credentials (never commit) ---
+.env
+.env.*
+!.env.example
+.aws/
+credentials
+*.pem
+*.key
+
+# --- Terraform ---
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+# Note: .terraform.lock.hcl IS committed (pins provider versions)
+
+# --- Python (Lambda backend) ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# --- Build artifacts (Lambda zips, packaged layers) ---
+*.zip
+build/
+dist/
+
+# --- Node (frontend) ---
+node_modules/
+.vite/
+npm-debug.log*
+
+# --- OS / editors ---
+.DS_Store
+.idea/
+.vscode/
+*.swp

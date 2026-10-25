@@ -31,7 +31,7 @@ docs/                architecture, ADRs, exam notes
 
 ## Docs
 
-- [Exam notes](docs/exam-notes.md): CLF-C02 revision sheet built alongside the project
+- [What I've learned](docs/what-ive-learned.md): CLF-C02 revision sheet built alongside the project
 - [Architecture decisions](docs/adr/)
 
 ## License

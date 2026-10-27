@@ -1,8 +1,8 @@
 # Roadmap
 
 - [x] **0. Account setup:** root MFA, budget guard, IAM user, AWS CLI, Terraform
-- [ ] **1. Storage:** private S3 bucket (Terraform module)
-- [ ] **2. Upload URL:** `presign_upload` Lambda + IAM role
+- [x] **1. Storage:** private S3 bucket (Terraform module)
+- [x] **2. Upload URL:** `presign_upload` Lambda + IAM role
 - [ ] **3. API:** API Gateway HTTP API
 - [ ] **4. Processing:** S3 event → `process_image` Lambda → thumbnail + Rekognition labels
 - [ ] **5. Database:** DynamoDB table for metadata and tags

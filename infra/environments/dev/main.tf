@@ -24,6 +24,15 @@ module "storage" {
   environment = "dev"
 }
 
+module "presign_upload" {
+  source = "../../modules/compute"
+
+  function_name = "presign-upload-dev"
+  source_dir    = "${path.module}/../../../backend/functions/presign_upload"
+  bucket_name   = module.storage.bucket_name
+  bucket_arn    = module.storage.bucket_arn
+}
+
 output "bucket_name" {
   value = module.storage.bucket_name
 }

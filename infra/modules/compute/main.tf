@@ -22,19 +22,17 @@ resource "aws_iam_role_policy_attachment" "logs" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-# permission to put objects, only under uploads/
+# permissions specific to this function, passed in by the caller
 
-data "aws_iam_policy_document" "s3_put" {
-  statement {
-    actions   = ["s3:PutObject"]
-    resources = ["${var.bucket_arn}/uploads/*"]
-  }
+resource "aws_iam_role_policy" "this" {
+  name   = "${var.function_name}-policy"
+  role   = aws_iam_role.this.id
+  policy = var.policy_json
 }
 
-resource "aws_iam_role_policy" "s3_put" {
-  name   = "s3-put-uploads"
-  role   = aws_iam_role.this.id
-  policy = data.aws_iam_policy_document.s3_put.json
+moved {
+  from = aws_iam_role_policy.s3_put
+  to   = aws_iam_role_policy.this
 }
 
 # keep logs 7 days instead of forever
@@ -59,12 +57,12 @@ resource "aws_lambda_function" "this" {
   handler          = "app.handler"
   filename         = data.archive_file.this.output_path
   source_code_hash = data.archive_file.this.output_base64sha256
-  timeout          = 10
+  timeout          = var.timeout
+  memory_size      = var.memory_size
+  layers           = var.layers
 
   environment {
-    variables = {
-      BUCKET_NAME = var.bucket_name
-    }
+    variables = var.environment_variables
   }
 
   depends_on = [aws_cloudwatch_log_group.this]

@@ -25,3 +25,37 @@ USER HTTP PUT presign url -> Amazon S3
 
 The API Gateway allows to create a public URL (post) that someone can access 
 Browser → API Gateway → Lambda presign_upload → URL assigned → upload to S3
+
+The first Lambda layer, now S3 calls it automatically whenever a file lands in uploads/, with nobody asking
+
+Amazon Rekognition is a fully managed cloud-based computer vision service by Amazon Web Services (AWS) that allows you to analyze images and videos using machine learning without needing prior AI or ML experience
+
+What each folder is for
+serverless-image-gallery/
+├── backend/
+│   ├── functions/          Python code for each Lambda, one folder per function
+│   │   ├── presign_upload/   app.py: returns a signed upload URL       (Phase 2)
+│   │   ├── process_image/    app.py: thumbnail + Rekognition labels    (Phase 4)
+│   │   ├── list_images/      empty, Phase 6
+│   │   ├── search_by_tag/    empty, Phase 6
+│   │   └── delete_image/     empty, Phase 6
+│   ├── shared/             code reused by several functions (e.g. DynamoDB helpers)
+│   └── tests/              unit tests for the functions
+│
+├── infra/                  everything Terraform
+│   ├── modules/            reusable building blocks, they define "how"
+│   │   ├── storage/          S3 bucket, public access block, encryption
+│   │   ├── compute/          one Lambda: role, policy, log group, function
+│   │   ├── api/              API Gateway: API, stage, route, integration
+│   │   ├── database/         DynamoDB      (Phase 5)
+│   │   ├── auth/             Cognito       (Phase 7)
+│   │   ├── cdn/              CloudFront    (Phase 8)
+│   │   └── monitoring/       alarms + SNS  (Phase 9)
+│   └── environments/
+│       └── dev/            the "root": where you run terraform. It says "what":
+│                             which modules, with which names, wired together
+│
+├── build/                  generated files (Pillow layer, zips). Not in git.
+├── frontend/               the React website  (Phase 8)
+├── docs/                   roadmap, learning notes, ADRs (decision records)
+└── .github/workflows/      CI/CD pipelines     (Phase 10)

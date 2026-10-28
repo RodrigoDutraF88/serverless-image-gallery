@@ -8,12 +8,29 @@ variable "source_dir" {
   type        = string
 }
 
-variable "bucket_name" {
-  description = "Bucket the function generates upload URLs for"
+variable "policy_json" {
+  description = "IAM policy with the permissions this function needs"
   type        = string
 }
 
-variable "bucket_arn" {
-  description = "ARN of that bucket, used in the IAM policy"
-  type        = string
+variable "environment_variables" {
+  description = "Environment variables passed to the function"
+  type        = map(string)
+  default     = {}
+}
+
+variable "layers" {
+  description = "Lambda layer ARNs"
+  type        = list(string)
+  default     = []
+}
+
+variable "timeout" {
+  type    = number
+  default = 10
+}
+
+variable "memory_size" {
+  type    = number
+  default = 128
 }

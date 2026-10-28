@@ -22,3 +22,6 @@ The workflow is
 USER HTTP GET getUploadUrl -> API Gateway -> AWS Lambda Generates Presign URL
 then
 USER HTTP PUT presign url -> Amazon S3
+
+The API Gateway allows to create a public URL (post) that someone can access 
+Browser → API Gateway → Lambda presign_upload → URL assigned → upload to S3

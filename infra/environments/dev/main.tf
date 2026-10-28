@@ -36,3 +36,15 @@ module "presign_upload" {
 output "bucket_name" {
   value = module.storage.bucket_name
 }
+
+module "api" {
+  source = "../../modules/api"
+
+  api_name             = "image-gallery-dev"
+  lambda_function_name = module.presign_upload.function_name
+  lambda_invoke_arn    = module.presign_upload.invoke_arn
+}
+
+output "api_url" {
+  value = module.api.api_url
+}

@@ -59,3 +59,9 @@ serverless-image-gallery/
 ├── frontend/               the React website  (Phase 8)
 ├── docs/                   roadmap, learning notes, ADRs (decision records)
 └── .github/workflows/      CI/CD pipelines     (Phase 10)
+
+Dynamo DB: i already know that it was a NoSQL service, but i did not know much about the partition key and sort key. Partition Key must be unique if it is the only primary key
+and sort key is optional and used toguether with the partition key. itens with the same partition key are organized by Sort key
+I understood that the query retrieves itens using a specift partition key and can optionally filter results by sort key
+In the other hand, Scan examines every item in the table or index 
+

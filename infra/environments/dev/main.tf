@@ -89,6 +89,10 @@ data "aws_iam_policy_document" "process_image" {
     actions   = ["rekognition:DetectLabels"]
     resources = ["*"]
   }
+  statement {
+    actions   = ["dynamodb:PutItem", "dynamodb:BatchWriteItem"]
+    resources = [module.database.table_arn]
+  }
 }
 
 module "process_image" {
@@ -100,6 +104,9 @@ module "process_image" {
   layers        = [aws_lambda_layer_version.pillow.arn]
   timeout       = 30
   memory_size   = 512
+  environment_variables = {
+    TABLE_NAME = module.database.table_name
+  }
 }
 
 # trigger process_image on every new object in uploads/
@@ -122,4 +129,12 @@ resource "aws_s3_bucket_notification" "uploads" {
   }
 
   depends_on = [aws_lambda_permission.s3_invoke_process_image]
+}
+
+# metadata and tags
+
+module "database" {
+  source = "../../modules/database"
+
+  table_name = "image-gallery-dev"
 }

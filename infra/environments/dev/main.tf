@@ -50,11 +50,27 @@ output "bucket_name" {
 module "api" {
   source = "../../modules/api"
 
-  api_name             = "image-gallery-dev"
-  lambda_function_name = module.presign_upload.function_name
-  lambda_invoke_arn    = module.presign_upload.invoke_arn
-}
+  api_name = "image-gallery-dev"
 
+  routes = {
+    "POST /upload-url" = {
+      function_name = module.presign_upload.function_name
+      invoke_arn    = module.presign_upload.invoke_arn
+    }
+    "GET /images" = {
+      function_name = module.list_images.function_name
+      invoke_arn    = module.list_images.invoke_arn
+    }
+    "GET /images/search" = {
+      function_name = module.search_by_tag.function_name
+      invoke_arn    = module.search_by_tag.invoke_arn
+    }
+    "DELETE /images/{id}" = {
+      function_name = module.delete_image.function_name
+      invoke_arn    = module.delete_image.invoke_arn
+    }
+  }
+}
 output "api_url" {
   value = module.api.api_url
 }
@@ -137,4 +153,70 @@ module "database" {
   source = "../../modules/database"
 
   table_name = "image-gallery-dev"
+}
+
+# gallery API: list, search and delete images
+
+data "aws_iam_policy_document" "read_images" {
+  statement {
+    actions   = ["dynamodb:Query"]
+    resources = [module.database.table_arn]
+  }
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${module.storage.bucket_arn}/thumbnails/*"]
+  }
+}
+
+data "aws_iam_policy_document" "delete_image" {
+  statement {
+    actions   = ["dynamodb:GetItem", "dynamodb:DeleteItem", "dynamodb:BatchWriteItem"]
+    resources = [module.database.table_arn]
+  }
+  statement {
+    actions = ["s3:DeleteObject"]
+    resources = [
+      "${module.storage.bucket_arn}/uploads/*",
+      "${module.storage.bucket_arn}/thumbnails/*",
+    ]
+  }
+}
+
+module "list_images" {
+  source = "../../modules/compute"
+
+  function_name = "list-images-dev"
+  source_dir    = "${path.module}/../../../backend/functions/list_images"
+  policy_json   = data.aws_iam_policy_document.read_images.json
+
+  environment_variables = {
+    TABLE_NAME  = module.database.table_name
+    BUCKET_NAME = module.storage.bucket_name
+  }
+}
+
+module "search_by_tag" {
+  source = "../../modules/compute"
+
+  function_name = "search-by-tag-dev"
+  source_dir    = "${path.module}/../../../backend/functions/search_by_tag"
+  policy_json   = data.aws_iam_policy_document.read_images.json
+
+  environment_variables = {
+    TABLE_NAME  = module.database.table_name
+    BUCKET_NAME = module.storage.bucket_name
+  }
+}
+
+module "delete_image" {
+  source = "../../modules/compute"
+
+  function_name = "delete-image-dev"
+  source_dir    = "${path.module}/../../../backend/functions/delete_image"
+  policy_json   = data.aws_iam_policy_document.delete_image.json
+
+  environment_variables = {
+    TABLE_NAME  = module.database.table_name
+    BUCKET_NAME = module.storage.bucket_name
+  }
 }

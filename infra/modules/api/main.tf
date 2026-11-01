@@ -6,7 +6,7 @@ resource "aws_apigatewayv2_api" "this" {
 
   cors_configuration {
     allow_origins = ["*"]
-    allow_methods = ["POST"]
+    allow_methods = ["GET", "POST", "DELETE"]
     allow_headers = ["content-type"]
   }
 }
@@ -24,29 +24,48 @@ resource "aws_apigatewayv2_stage" "default" {
   }
 }
 
-# integration: how the API talks to the Lambda
+# one integration, route and permission per entry in var.routes
 
-resource "aws_apigatewayv2_integration" "presign" {
+resource "aws_apigatewayv2_integration" "this" {
+  for_each = var.routes
+
   api_id                 = aws_apigatewayv2_api.this.id
   integration_type       = "AWS_PROXY"
-  integration_uri        = var.lambda_invoke_arn
+  integration_uri        = each.value.invoke_arn
   payload_format_version = "2.0"
 }
 
-# route: which request goes to which integration
+resource "aws_apigatewayv2_route" "this" {
+  for_each = var.routes
 
-resource "aws_apigatewayv2_route" "presign" {
   api_id    = aws_apigatewayv2_api.this.id
-  route_key = "POST /upload-url"
-  target    = "integrations/${aws_apigatewayv2_integration.presign.id}"
+  route_key = each.key
+  target    = "integrations/${aws_apigatewayv2_integration.this[each.key].id}"
 }
 
-# allow API Gateway to invoke the Lambda
+resource "aws_lambda_permission" "this" {
+  for_each = var.routes
 
-resource "aws_lambda_permission" "api" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
-  function_name = var.lambda_function_name
+  function_name = each.value.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.this.execution_arn}/*/*"
+}
+
+# keep the Phase 3 resources instead of recreating them
+
+moved {
+  from = aws_apigatewayv2_integration.presign
+  to   = aws_apigatewayv2_integration.this["POST /upload-url"]
+}
+
+moved {
+  from = aws_apigatewayv2_route.presign
+  to   = aws_apigatewayv2_route.this["POST /upload-url"]
+}
+
+moved {
+  from = aws_lambda_permission.api
+  to   = aws_lambda_permission.this["POST /upload-url"]
 }

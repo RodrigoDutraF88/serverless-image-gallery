@@ -50,7 +50,9 @@ output "bucket_name" {
 module "api" {
   source = "../../modules/api"
 
-  api_name = "image-gallery-dev"
+  api_name     = "image-gallery-dev"
+  jwt_issuer   = module.auth.issuer
+  jwt_audience = [module.auth.client_id]
 
   routes = {
     "POST /upload-url" = {
@@ -219,4 +221,16 @@ module "delete_image" {
     TABLE_NAME  = module.database.table_name
     BUCKET_NAME = module.storage.bucket_name
   }
+}
+
+# sign-up / sign-in
+
+module "auth" {
+  source = "../../modules/auth"
+
+  pool_name = "image-gallery-dev"
+}
+
+output "user_pool_client_id" {
+  value = module.auth.client_id
 }

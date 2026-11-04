@@ -7,12 +7,12 @@ from boto3.dynamodb.conditions import Key
 s3 = boto3.client("s3")
 table = boto3.resource("dynamodb").Table(os.environ["TABLE_NAME"])
 BUCKET_NAME = os.environ["BUCKET_NAME"]
-OWNER = "anonymous"  
 URL_EXPIRES_SECONDS = 3600
 
 
 def handler(event, context):
-    result = table.query(KeyConditionExpression=Key("pk").eq(f"USER#{OWNER}"))
+    owner = event["requestContext"]["authorizer"]["jwt"]["claims"]["sub"]
+    result = table.query(KeyConditionExpression=Key("pk").eq(f"USER#{owner}"))
 
     images = [
         {

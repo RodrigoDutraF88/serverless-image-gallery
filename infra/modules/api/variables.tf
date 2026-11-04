@@ -10,3 +10,13 @@ variable "routes" {
     invoke_arn    = string
   }))
 }
+
+variable "jwt_issuer" {
+  description = "Token issuer URL (the Cognito user pool)"
+  type        = string
+}
+
+variable "jwt_audience" {
+  description = "App client IDs allowed to call the API"
+  type        = list(string)
+}

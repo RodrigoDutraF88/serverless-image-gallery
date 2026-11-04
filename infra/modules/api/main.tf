@@ -7,7 +7,7 @@ resource "aws_apigatewayv2_api" "this" {
   cors_configuration {
     allow_origins = ["*"]
     allow_methods = ["GET", "POST", "DELETE"]
-    allow_headers = ["content-type"]
+    allow_headers = ["authorization", "content-type"]
   }
 }
 
@@ -21,6 +21,20 @@ resource "aws_apigatewayv2_stage" "default" {
   default_route_settings {
     throttling_burst_limit = 10
     throttling_rate_limit  = 5
+  }
+}
+
+# only requests with a valid Cognito token get through
+
+resource "aws_apigatewayv2_authorizer" "jwt" {
+  api_id           = aws_apigatewayv2_api.this.id
+  name             = "cognito"
+  authorizer_type  = "JWT"
+  identity_sources = ["$request.header.Authorization"]
+
+  jwt_configuration {
+    issuer   = var.jwt_issuer
+    audience = var.jwt_audience
   }
 }
 
@@ -41,6 +55,9 @@ resource "aws_apigatewayv2_route" "this" {
   api_id    = aws_apigatewayv2_api.this.id
   route_key = each.key
   target    = "integrations/${aws_apigatewayv2_integration.this[each.key].id}"
+
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
 }
 
 resource "aws_lambda_permission" "this" {

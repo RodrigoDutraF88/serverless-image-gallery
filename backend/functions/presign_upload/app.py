@@ -11,7 +11,8 @@ URL_EXPIRES_SECONDS = 300
 
 
 def handler(event, context):
-    key = f"uploads/{uuid.uuid4()}.jpg"
+    owner = event["requestContext"]["authorizer"]["jwt"]["claims"]["sub"]
+    key = f"uploads/{owner}/{uuid.uuid4()}.jpg"
 
     upload_url = s3.generate_presigned_url(
         "put_object",

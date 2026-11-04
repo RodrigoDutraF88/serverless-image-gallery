@@ -7,17 +7,17 @@ from boto3.dynamodb.conditions import Key
 s3 = boto3.client("s3")
 table = boto3.resource("dynamodb").Table(os.environ["TABLE_NAME"])
 BUCKET_NAME = os.environ["BUCKET_NAME"]
-OWNER = "anonymous"  # replaced by the Cognito user id in Phase 7
 URL_EXPIRES_SECONDS = 3600
 
 
 def handler(event, context):
+    owner = event["requestContext"]["authorizer"]["jwt"]["claims"]["sub"]
     params = event.get("queryStringParameters") or {}
     tag = params.get("tag", "").strip().lower()
     if not tag:
         return response(400, {"message": "missing ?tag= parameter"})
 
-    result = table.query(KeyConditionExpression=Key("pk").eq(f"USER#{OWNER}#TAG#{tag}"))
+    result = table.query(KeyConditionExpression=Key("pk").eq(f"USER#{owner}#TAG#{tag}"))
 
     images = [
         {

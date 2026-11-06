@@ -15,13 +15,20 @@ provider "aws" {
   profile = "dev"
 }
 
+# websites allowed to call the API and upload from the browser
+
+locals {
+  allowed_origins = [module.cdn.site_url, "http://localhost:5173"]
+}
+
 # private bucket for uploaded images
 
 module "storage" {
   source = "../../modules/storage"
 
-  bucket_name = "rodrigo-private-bucket"
-  environment = "dev"
+  bucket_name     = "rodrigo-private-bucket"
+  environment     = "dev"
+  allowed_origins = local.allowed_origins
 }
 
 data "aws_iam_policy_document" "presign_upload" {
@@ -50,9 +57,10 @@ output "bucket_name" {
 module "api" {
   source = "../../modules/api"
 
-  api_name     = "image-gallery-dev"
-  jwt_issuer   = module.auth.issuer
-  jwt_audience = [module.auth.client_id]
+  api_name        = "image-gallery-dev"
+  jwt_issuer      = module.auth.issuer
+  jwt_audience    = [module.auth.client_id]
+  allowed_origins = local.allowed_origins
 
   routes = {
     "POST /upload-url" = {
@@ -233,4 +241,28 @@ module "auth" {
 
 output "user_pool_client_id" {
   value = module.auth.client_id
+}
+
+output "user_pool_id" {
+  value = module.auth.user_pool_id
+}
+
+# website hosting
+
+module "cdn" {
+  source = "../../modules/cdn"
+
+  bucket_name = "rodrigo-gallery-site-dev"
+}
+
+output "site_bucket" {
+  value = module.cdn.site_bucket
+}
+
+output "distribution_id" {
+  value = module.cdn.distribution_id
+}
+
+output "site_url" {
+  value = module.cdn.site_url
 }

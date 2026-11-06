@@ -20,3 +20,8 @@ variable "jwt_audience" {
   description = "App client IDs allowed to call the API"
   type        = list(string)
 }
+
+variable "allowed_origins" {
+  description = "Websites allowed to call the API from the browser"
+  type        = list(string)
+}

@@ -8,6 +8,6 @@
 - [x] **5. Database:** DynamoDB table for metadata and tags
 - [x] **6. Gallery API:** `list_images`, `search_by_tag`, `delete_image`
 - [x] **7. Auth:** Cognito + JWT authorizer
-- [ ] **8. Frontend:** React app on S3 + CloudFront (OAC)
-- [ ] **9. Monitoring:** CloudWatch alarms + SNS
+- [X] **8. Frontend:** React app on S3 + CloudFront (OAC)
+- [X] **9. Monitoring:** CloudWatch alarms + SNS
 - [ ] **10. CI/CD:** GitHub Actions with OIDC

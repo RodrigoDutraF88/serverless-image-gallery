@@ -266,3 +266,26 @@ output "distribution_id" {
 output "site_url" {
   value = module.cdn.site_url
 }
+
+# alarms: email me when a Lambda fails or the API returns 5xx
+
+variable "alert_email" {
+  description = "Email that receives alarm notifications (set in terraform.tfvars)"
+  type        = string
+}
+
+module "monitoring" {
+  source = "../../modules/monitoring"
+
+  name_prefix = "image-gallery-dev"
+  alert_email = var.alert_email
+  api_id      = module.api.api_id
+
+  function_names = [
+    module.presign_upload.function_name,
+    module.process_image.function_name,
+    module.list_images.function_name,
+    module.search_by_tag.function_name,
+    module.delete_image.function_name,
+  ]
+}

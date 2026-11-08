@@ -7,12 +7,21 @@ terraform {
       version = "~> 6.0"
     }
   }
-  required_version = ">= 1.0"
+  required_version = ">= 1.10"
+
+  # state lives in S3 so your PC and GitHub Actions share it; the lock file stops two applies at once
+  backend "s3" {
+    bucket       = "rodrigo-gallery-tfstate"
+    key          = "dev/terraform.tfstate"
+    region       = "us-east-1"
+    encrypt      = true
+    use_lockfile = true
+  }
 }
 
+# credentials come from the environment: AWS_PROFILE locally, OIDC in GitHub Actions
 provider "aws" {
-  region  = "us-east-1"
-  profile = "dev"
+  region = "us-east-1"
 }
 
 # websites allowed to call the API and upload from the browser

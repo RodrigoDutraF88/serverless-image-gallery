@@ -66,3 +66,5 @@ I understood that the query retrieves itens using a specift partition key and ca
 In the other hand, Scan examines every item in the table or index 
 
 Amazon Cognito provides comprehensive identity and access management for both human and non-human identities.
+
+CloudWatch is a monitoring and observability service built into AWS

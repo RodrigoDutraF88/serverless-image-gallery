@@ -1,0 +1,77 @@
+# deploys infrastructure, Lambdas and the website on every push to main
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write # lets the job request an OIDC token to sign in to AWS
+  contents: read
+
+# never run two deploys at the same time
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+env:
+  TF_DIR: infra/environments/dev
+  TF_VAR_alert_email: ${{ secrets.ALERT_EMAIL }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Sign in to AWS (OIDC, no stored keys)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Build Pillow layer
+        run: >
+          python -m pip install pillow==12.2.0
+          --platform manylinux2014_x86_64 --only-binary=:all:
+          --python-version 3.13 --implementation cp
+          --target build/layers/pillow/python
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.16.6
+          terraform_wrapper: false
+
+      - name: Terraform apply
+        run: |
+          terraform -chdir=$TF_DIR init -input=false
+          terraform -chdir=$TF_DIR apply -input=false -auto-approve
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          cat > .env.local <<EOF
+          VITE_API_URL=$(terraform -chdir=../$TF_DIR output -raw api_url)
+          VITE_USER_POOL_ID=$(terraform -chdir=../$TF_DIR output -raw user_pool_id)
+          VITE_CLIENT_ID=$(terraform -chdir=../$TF_DIR output -raw user_pool_client_id)
+          EOF
+          npm ci
+          npm run build
+
+      - name: Publish frontend
+        run: |
+          aws s3 sync frontend/dist "s3://$(terraform -chdir=$TF_DIR output -raw site_bucket)" --delete
+          aws cloudfront create-invalidation --paths "/*" \
+            --distribution-id "$(terraform -chdir=$TF_DIR output -raw distribution_id)"

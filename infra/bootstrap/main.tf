@@ -16,7 +16,9 @@ provider "aws" {
 }
 
 locals {
-  github_repo = "RodrigoDutraF88/serverless-image-gallery"
+  # GitHub's immutable OIDC subject: owner@owner_id/repo@repo_id, so a renamed or
+  # re-created repo with the same name can never use this role
+  github_repo = "RodrigoDutraF88@209970638/serverless-image-gallery@1409083744"
 }
 
 data "aws_caller_identity" "current" {}

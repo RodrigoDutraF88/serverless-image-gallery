@@ -10,4 +10,4 @@
 - [x] **7. Auth:** Cognito + JWT authorizer
 - [X] **8. Frontend:** React app on S3 + CloudFront (OAC)
 - [X] **9. Monitoring:** CloudWatch alarms + SNS
-- [ ] **10. CI/CD:** GitHub Actions with OIDC
+- [x] **10. CI/CD:** GitHub Actions with OIDC
